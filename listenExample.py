@@ -1,22 +1,15 @@
 from flask import render_template
-from flask import Flask, url_for, redirect, request, flash
+from flask import Flask, url_for, redirect, request, send_from_directory
 from werkzeug.utils import secure_filename
 import os,json
 import ron
-app = Flask(__name__)
 
-class penis():
-    def __init__(self, my_penis):
-        self.penis=my_penis
-        self.size = 10
-    def calculate_size(self):
-        self.size+=10
-        return self.size
 
-UPLOAD_FOLDER = r'C:\Users\john\Desktop\workSpace\yara_cr\uploaded'
+
+UPLOAD_FOLDER = os.getcwd()+'/uploaded'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif','exe'])
 
-app = Flask(__name__)
+app = Flask(__name__,static_folder='yara_repository')
 app.config['MAX_CONTENT_LENGTH'] = 21 * 1024 * 1024 #16 MB max file size
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -35,12 +28,12 @@ def checkboxes(att):
     else:
         pass
     return att
-def sizes(size):
 
+def sizes(size):
     if size == "":
         size = 0
     size = int(size)
-    if size < 0:
+    if size < 0 or size > 15:
         size = 0
     return size
 
@@ -86,18 +79,62 @@ def noyara():
     return "Could not manage to generate YARA file"
 
 
-@app.route('/page/')
-def page():
-    return "on page"
+@app.route('/bad_parameter/')
+def bad_parameter():
+    return "Bad parameter was posted"
 
 
-@app.errorhandler(413)
-def error413(e):
-    print("EDO",e )
-    return "PENIS",413
+@app.route('/yara_repository/')
+def yara_repository():
+    files = list()
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(os.getcwd() + "/yara_repository"):
+        for file in f:
+            files.append(file)
+    return render_template("yararepo.html", all=files)
+
+
+@app.route('/badfiles/')
+def badfiles():
+    files = list()
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(os.getcwd() + "/uploaded"):
+        for file in f:
+            files.append(file)
+    return render_template("badfilesrepo.html", all=files)
+
+
+
+@app.route('/download/', methods=['GET', 'POST'])
+def download():
+    filename = request.args.get('filename', 1, type=str)
+    typeof = request.args.get('typeof', 1, type=str)
+
+    if typeof == "bad":
+        uploads = os.getcwd() + "/uploaded/"
+        return send_from_directory(directory=uploads, filename=filename)
+    elif typeof == "yara":
+        uploads = os.getcwd()+"/yara_repository/"
+        return send_from_directory(directory=uploads, filename=filename)
+
+    else:
+        return redirect(url_for('bad_parameter'))
+
+    #return send_from_directory(directory=uploads, filename=filename)
+
+
+
+
 
 
 if __name__ == "__main__":
+    yara_f_path = os.getcwd()+"/yara_repository"
+    upload_f_path = os.getcwd() + "/uploaded"
+    if not os.path.exists(yara_f_path):
+        os.makedirs(yara_f_path)
+    if not os.path.exists(upload_f_path):
+        os.makedirs(upload_f_path)
+    del yara_f_path,upload_f_path
     #app.run(host='0.0.0.0',debug=True)
     app.run(debug=True)
 

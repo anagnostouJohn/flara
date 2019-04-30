@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<head>
+<title>Yara Creator</title>
+    </head>
+<body>
+
+<h1> Malware Repository </h1>
+ <!--<ul id="repository" style=" width: 100%; height: 620px; margin: 0 auto; overflow: auto; float:right">-->
+ <ul id="repository">
+            {% for item in all %}
+
+            <li><a href="{{url_for('download',filename = item, typeof='bad')}}" >{{ item }}</a></li>
+            {% endfor %}
+        </ul>
+</body>
+</html>

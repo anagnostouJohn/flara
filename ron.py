@@ -54,6 +54,12 @@ class new_YARA():
             self.create_yara()
             self.check_yara()
             counter+=1
+            if self.result == True:
+                print("MESA")
+                self.zipeverything()
+                print("MESA1")
+
+
 
     # def extruct_url(self,chunk):
     #     url = re.match(regex, chunk)
@@ -148,6 +154,9 @@ class new_YARA():
             if self.size_op > 0:
                 if data[0:2] == b"MZ":
                     self.extract_opcodes(data)
+                else:
+                    self.size_op=0
+
             if len(allstrings) > 0:
                 self.printable_strings = list(set(allstrings))
                 return list(set(allstrings)), from_regex, list(set(self.opcodes))
@@ -188,7 +197,7 @@ class new_YARA():
                         f_sings.append(sign)
         file_type = types_from_magic
         f.close()
-        return file_type, f_sings
+        return set(file_type), f_sings
 
     def calc_size(self):
         self.size = int(self.size)
@@ -200,12 +209,15 @@ class new_YARA():
         if len(self.printable_strings)<self.size:
             self.size = len(self.printable_strings)
     def calc_many(self):
+        print ("ddd",self.size_op)
         if self.size+self.size_op<self.many:
             hm = "all"
         else:
             hm = str(self.many+self.size_op)
+
         if self.many == 0 or self.many == "":
             hm = "all"
+        #print(hm)
         return hm
 
 
@@ -219,72 +231,102 @@ class new_YARA():
         return f_size
 
     def create_yara(self):
-        self.get_hashes()
-        self.getStrings()
+        try:
+            self.get_hashes()
+            self.getStrings()
 
-        self.calc_size()
-        randOpcodes=""
-        hmany = self.calc_many()
-        randStrings = random.sample(self.printable_strings,self.size)
+            self.calc_size()
+            randOpcodes=""
+            hmany = self.calc_many()
+            randStrings = random.sample(self.printable_strings,self.size)
 
-        if len(self.opcodes)>0:
-            randOpcodes=random.sample(self.opcodes,self.size_op)
-        self.yara_name = os.path.basename(self.path).split(".")[0]
-        #x = "abcd><!@#$^&*()(*&^ %$#@\\"
-        z = " !@#$%^&*()-+{}\",.<>?/;'\\[]:"
-        for i in z:
-            self.yara_name = self.yara_name.replace(i, "")
-        self.yara_name = "Yara_"+self.yara_name
-        self.yara_path = os.getcwd()+"/Yara/"+self.yara_name+".yara"
-        ruleOutFile = open(self.yara_path, "w")
-        ruleOutFile.write("rule " + self.yara_name)
-        ruleOutFile.write("\n")
-        ruleOutFile.write("{\n")
-        ruleOutFile.write("meta:\n")
-        ruleOutFile.write("\tdate = \"" + str(datetime.datetime.now().date()) + "\"\n")
-        ruleOutFile.write("\thash_md5 = \"" + self.md5 + "\"\n")
-        ruleOutFile.write("\thash_md5 = \"" + self.sha256 + "\"\n")
-        file_type, offset_byte = self.get_file_type()
-        ruleOutFile.write("\tsample_filetype = \"" + ' '.join(file_type) + "\"\n")
-        ruleOutFile.write("strings:\n")
-       # print(randStrings)
-        c = 0
-        for s in randStrings:
-            s = s.decode("utf-8")
-            if "\x00" in s:
-                ruleOutFile.write(
-                    "\t$string" + str(c) + " = \"" + s.replace("\\", "\\\\").replace('"', '\\"').replace(
-                        "\x00", "") + "\" wide\n")
-            else:
-                ruleOutFile.write("\t$string" + str(c)+ " = \"" + s.replace("\\", "\\\\") + "\"\n")
-            c += 1
-        if len(randOpcodes)>0:
-            for s in randOpcodes:
-                ruleOutFile.write("\t$string"+ str(c)+" = {"+s+"} \n")
-                c+=1
-        ruleOutFile.write("condition:\n")
-        f_unit=""
-        if self.uint == "uint":
-            if len(offset_byte)!=0:
-            #print(offset_byte)
-                a = offset_byte[0].split(",")
-                uint, res = self.mb(a[1])
-                if len(uint)!=0:
-                    f_unit = f"and uint{uint}({a[0]}) == 0x{res}"
-        else:
+            if len(self.opcodes)>0:
+                randOpcodes=random.sample(self.opcodes,self.size_op)
+            self.yara_name = os.path.basename(self.path).split(".")[0]
+            #x = "abcd><!@#$^&*()(*&^ %$#@\\"
+            z = " !@#$%^&*()-+{}\",.<>?/;'\\[]:"
+            for i in z:
+                self.yara_name = self.yara_name.replace(i, "")
+            self.yara_name = "Yara_"+self.yara_name
+            self.yara_path = os.getcwd()+"/yara_repository/"+self.yara_name+".yara"
+            ruleOutFile = open(self.yara_path, "w")
+            ruleOutFile.write("rule " + self.yara_name)
+            ruleOutFile.write("\n")
+            ruleOutFile.write("{\n")
+            ruleOutFile.write("meta:\n")
+            ruleOutFile.write("\tdate = \"" + str(datetime.datetime.now().date()) + "\"\n")
+            ruleOutFile.write("\thash_md5 = \"" + self.md5 + "\"\n")
+            ruleOutFile.write("\thash_md5 = \"" + self.sha256 + "\"\n")
+            file_type, offset_byte = self.get_file_type()
+            ruleOutFile.write("\tsample_filetype = \"" + ' '.join(file_type) + "\"\n")
+            ruleOutFile.write("strings:\n")
+           # print(randStrings)
+            c = 0
+            for s in randStrings:
+                s = s.decode("utf-8")
+                if "\x00" in s:
+                    ruleOutFile.write(
+                        "\t$string" + str(c) + " = \"" + s.replace("\\", "\\\\").replace('"', '\\"').replace(
+                            "\x00", "") + "\" wide\n")
+                else:
+                    ruleOutFile.write("\t$string" + str(c)+ " = \"" + s.replace("\\", "\\\\") + "\"\n")
+                c += 1
+            if len(randOpcodes)>0:
+                for s in randOpcodes:
+                    ruleOutFile.write("\t$string"+ str(c)+" = {"+s+"} \n")
+                    c+=1
+            ruleOutFile.write("condition:\n")
             f_unit=""
-        if self.filesize == "filesize":
-            f_size = self.calc_filesize()
+            if self.uint == "uint":
+                if len(offset_byte)!=0:
+                    a = offset_byte[0].split(",")
+                    uint, res = self.mb(a[1])
+                    if len(uint)!=0:
+                        f_unit = f"and uint{uint}({a[0]}) == 0x{res}"
+            else:
+                f_unit=""
+            if self.filesize == "filesize":
+                f_size = self.calc_filesize()
 
 
-        else:
-            f_size=""
-        ruleOutFile.write(f"\t {hmany} of them {f_unit} {f_size} \n")
-        ruleOutFile.write("}\n")
-        ruleOutFile.close()
+            else:
+                f_size=""
+            ruleOutFile.write(f"\t {hmany} of them {f_unit} {f_size} \n")
+            ruleOutFile.write("}\n")
+            ruleOutFile.close()
 
 
-        return
+            return
+        except Exception as e:
+            print(e)
+
+
+    def zipeverything(self):
+        try:
+            zip = os.getcwd()+f"/uploaded/{self.yara_name}.zip"
+            file = os.getcwd() + f"/yara_repository/{self.yara_path}"
+            zip.replace("\\","/")
+            file.replace("\\","/")
+            print(zip)
+            print("OK")
+            basen = os.path.basename(self.path)
+            print(basen, "====", self.path)
+            my_zip = zipfile.ZipFile(zip, "w", zipfile.ZIP_DEFLATED)
+            my_zip.write(self.path, basen)
+            #my_zip.write(self.path)
+            #print("OK1")
+
+            basen = os.path.basename(self.yara_path)
+            #print(basen, "---",self.yara_path)
+            print(self.yara_path, basen)
+            my_zip.write(self.yara_path, basen)
+            #print("OK2")
+            my_zip.close()
+            os.remove(self.path)
+            del zip,basen,my_zip
+        except Exception as e:
+            print(e)
+
 
     def ret_all_str(self):
         strings_from_bytes = list()

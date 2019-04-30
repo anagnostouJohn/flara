@@ -4,39 +4,33 @@
     <title>Yara Creator</title>
     <script>
     function showFileSize(event) {
-
-
     var input, file;
         if (!window.FileReader) {
         alert("The file API isn't supported on this browser yet.");
         return;
     }
     input = document.getElementById('fileinput');
-
     file = input.files[0];
-
     if (file.size>20000000)
     {
         alert("Size must be 20MB max");
-
         event.preventDefault();
     }
-
-
         }
 
     </script>
 </head>
 <body>
-<!--<a href="{{url_for('page')}}">Page</a>-->
-<h1> Please Upload a File to create Yara </h1>
+
+<div style="width: 60%; float: left;" >
+<h1> Upload a File to create Yara </h1>
 <form method=post enctype=multipart/form-data onsubmit ='showFileSize(event);'>
 
 
     <br>
     <table>
         <tr>
-            <td>Upload File [20 Bytes Max size]</td>
+            <td>File [20 Bytes Max size]</td>
             <td><input type=file name=file id="fileinput"></td>
         </tr>
         <tr>
@@ -69,7 +63,15 @@
         </tr>
     </table>
 
+
 </form>
+    </div>
+<div style="width: 38%; float: left;" >
+<a href="{{url_for('yara_repository')}}">Yara Repository</a><br>
+<a href="{{url_for('badfiles')}}">Malware Repository</a>
+
+
+</div>
 </body>
 </html>
 <!--{% if name %}-->
