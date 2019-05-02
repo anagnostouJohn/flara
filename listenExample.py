@@ -28,12 +28,12 @@ def checkboxes(att):
     else:
         pass
     return att
-
 def sizes(size):
+
     if size == "":
         size = 0
     size = int(size)
-    if size < 0 or size > 15:
+    if size < 0:
         size = 0
     return size
 
@@ -49,19 +49,21 @@ def upload_file():
             size = sizes(request.form["size"])
             size_op = sizes(request.form["size_op"])
             many = sizes(request.form["many"])
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],size,size_op,many)
-                if x.result != False:
-                    file = open(x.yara_path,"r")
-                    rfile = file.read()
-                    file.close()
-                    all = x.ret_all_str()
-                    all_op = x.ret_all_op()
-                    return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename)#, data=map(json.dumps, L))
-                else:
-                    return redirect(url_for("noyara"))
+            # if file and (allowed_file(file.filename) or "ELF" in z) :# <<<<<<<<<<<< TODO SE PERIPTOSH POU THELO NA PERIORISO TOYS TYPOYS ARXEION POU THA ANEVAZO
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],size,size_op,many)
+            if x.result != False:
+                file = open(x.yara_path,"r")
+                rfile = file.read()
+                file.close()
+                all = x.ret_all_str()
+                all_op = x.ret_all_op()
+                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename)#, data=map(json.dumps, L))
+            else:
+                return redirect(url_for("noyara"))
+            # else:
+            #     return redirect(url_for("no proper file"))
     return render_template("hello.html")
 
 
@@ -77,11 +79,6 @@ def nofile():
 @app.route('/noyara/')
 def noyara():
     return "Could not manage to generate YARA file"
-
-
-@app.route('/bad_parameter/')
-def bad_parameter():
-    return "Bad parameter was posted"
 
 
 @app.route('/yara_repository/')
@@ -104,23 +101,18 @@ def badfiles():
     return render_template("badfilesrepo.html", all=files)
 
 
-
+# @app.route('/download/<path:filename>', methods=['GET', 'POST'])
 @app.route('/download/', methods=['GET', 'POST'])
+#def download(filename):
 def download():
     filename = request.args.get('filename', 1, type=str)
     typeof = request.args.get('typeof', 1, type=str)
 
     if typeof == "bad":
         uploads = os.getcwd() + "/uploaded/"
-        return send_from_directory(directory=uploads, filename=filename)
     elif typeof == "yara":
         uploads = os.getcwd()+"/yara_repository/"
-        return send_from_directory(directory=uploads, filename=filename)
-
-    else:
-        return redirect(url_for('bad_parameter'))
-
-    #return send_from_directory(directory=uploads, filename=filename)
+    return send_from_directory(directory=uploads, filename=filename)
 
 
 
