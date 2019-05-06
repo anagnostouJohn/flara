@@ -1,2 +1,2 @@
 # flara
-A web based yara generator
+A web based yara generator. Also uses virus tottal info
