@@ -18,13 +18,15 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def checkboxes(att):
-    checkb= [None,None,None]
+    checkb= [None,None,None,None]
     if "filesize" in att:
         checkb[0]="filesize"
     if "uint" in att:
         checkb[1]="uint"
     if "md5" in att:
         checkb[2]="md5"
+    if "up" in att:
+        checkb[3]="up"
     return checkb
 
 def sizes(size):
@@ -50,7 +52,7 @@ def upload_file():
             # if file and (allowed_file(file.filename) or "ELF" in z) :# <<<<<<<<<<<< TODO SE PERIPTOSH POU THELO NA PERIORISO TOYS TYPOYS ARXEION POU THA ANEVAZO
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],attribs[2],size,size_op,many)
+            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],attribs[2],attribs[3],size,size_op,many)
             if x.result != False:
                 file = open(x.yara_path,"r")
                 rfile = file.read()
@@ -108,7 +110,6 @@ def badfiles():
 def download():
     filename = request.args.get('filename', 1, type=str)
     typeof = request.args.get('typeof', 1, type=str)
-
     if typeof == "bad":
         uploads = os.getcwd() + "/uploaded/"
     elif typeof == "yara":
@@ -128,8 +129,8 @@ if __name__ == "__main__":
     if not os.path.exists(upload_f_path):
         os.makedirs(upload_f_path)
     del yara_f_path,upload_f_path
-    #app.run(host='0.0.0.0',debug=True)
-    app.run(debug=True)
+    app.run(host='0.0.0.0',debug=True)
+    #app.run(debug=True)
 
 #
 #

@@ -37,7 +37,7 @@ def magic_bytes():
         return x
 
 class new_YARA():
-    def __init__(self,path,filesize,uint,vt,size,size_op,many):
+    def __init__(self,path,filesize,uint,vt,up_vt,size,size_op,many):
         self.path = path
         self.md5 = None
         self.sha256=None
@@ -53,6 +53,7 @@ class new_YARA():
         self.filesize = filesize
         self.uint = uint
         self.vt = vt
+        self.up_vt = up_vt
         self.printable_strings=list()
         self.opcodes = list()
         self.rules = list()
@@ -70,28 +71,28 @@ class new_YARA():
     #     if url:
     #         self.rules.append(url)
     def get_hashes(self):
-
         self.md5 = hashlib.md5(open(self.path, 'rb').read()).hexdigest()
         self.sha256 = hashlib.sha256(open(self.path, 'rb').read()).hexdigest()
-        if self.vt == "md5":
-            vt = VirusTotalPublicApi(API_KEY)
-            #self.md5 = "4b26e810448141b3238895373c87f55a"
-            response = vt.get_file_report(self.md5)
-            x = json.dumps(response, sort_keys=False, indent=4)
-            self.vt_results = json.loads(x)
-            # if z["results"]["response_code"] == 1:
-            #     for i, j in z["results"]["scans"].items():
-            #
-            #         # print(i,"ffffff",j)
-            #         if j["detected"] == True:
-            #             print(i)
-            #             print(j["result"])
-            # elif z["results"]["response_code"] == 0:
-            #     pprint(z["results"]["verbose_msg"])
+        if (self.vt == "md5" and self.up_vt == None) or (self.vt == "md5" and self.up_vt == "up"):
+            try:
+                vt = VirusTotalPublicApi(API_KEY)
+                #self.md5 = "4b26e810448141b3238895373c87f55a"
+                response = vt.get_file_report(self.md5)
+                x = json.dumps(response, sort_keys=False, indent=4)
+                self.vt_results = json.loads(x)
+            except Exception as e:
+                self.vt_results = "error while attempting to connect to Virus Total Status ", e
+        if self.vt == None and self.up_vt == "up":
+            try:
+                vt = VirusTotalPublicApi(API_KEY)
+                response = vt.scan_file("app.exe")
+                report = vt.get_file_report(response["results"]["md5"])
+                print("Upload")
+            except Exception as err:
+                print(err)
 
     def mb(self,mb):
         if len(mb) >= 8:
-
             x = mb[0:8]
             of = "32"
             res = "".join(map(str.__add__, mb[-2::-2], mb[-1::-2]))
@@ -280,7 +281,7 @@ class new_YARA():
         ruleOutFile.write("meta:\n")
         ruleOutFile.write("\tdate = \"" + str(datetime.datetime.now().date()) + "\"\n")
         ruleOutFile.write("\thash_md5 = \"" + self.md5 + "\"\n")
-        ruleOutFile.write("\thash_md5 = \"" + self.sha256 + "\"\n")
+        ruleOutFile.write("\thash_sha256 = \"" + self.sha256 + "\"\n")
         file_type, offset_byte = self.get_file_type()
         ruleOutFile.write("\tsample_filetype = \"" + ' '.join(file_type) + "\"\n")
         ruleOutFile.write("strings:\n")
@@ -349,8 +350,8 @@ class new_YARA():
 
 
 
-def create_new_yara(path,filesize,uint,vt,size,size_op,many):
-    ny = new_YARA(path,filesize,uint,vt,size,size_op,many)
+def create_new_yara(path,filesize,uint,vt,up_vt,size,size_op,many):
+    ny = new_YARA(path,filesize,uint,vt,up_vt,size,size_op,many)
     return ny
 
 
