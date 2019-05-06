@@ -18,18 +18,16 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def checkboxes(att):
-    if "filesize" in att and "uint" not in att:
-        att.append(None)
-    elif "filesize" not in att and "uint" in att:
-        att.insert(0,None)
-    elif "filesize" not in att and "uint" not in att:
-        att.append(None)
-        att.append(None)
-    else:
-        pass
-    return att
-def sizes(size):
+    checkb= [None,None,None]
+    if "filesize" in att:
+        checkb[0]="filesize"
+    if "uint" in att:
+        checkb[1]="uint"
+    if "md5" in att:
+        checkb[2]="md5"
+    return checkb
 
+def sizes(size):
     if size == "":
         size = 0
     size = int(size)
@@ -41,7 +39,7 @@ def sizes(size):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        if 'file' not in request.files:
+        if 'file' not in request.files or len(request.files["file"].filename) == 0:
             return redirect(url_for("nofile"))
         else:
             file = request.files['file']
@@ -52,14 +50,17 @@ def upload_file():
             # if file and (allowed_file(file.filename) or "ELF" in z) :# <<<<<<<<<<<< TODO SE PERIPTOSH POU THELO NA PERIORISO TOYS TYPOYS ARXEION POU THA ANEVAZO
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],size,size_op,many)
+            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],attribs[2],size,size_op,many)
             if x.result != False:
                 file = open(x.yara_path,"r")
                 rfile = file.read()
                 file.close()
                 all = x.ret_all_str()
                 all_op = x.ret_all_op()
-                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename)#, data=map(json.dumps, L))
+                #if attribs[2] == "md5":
+                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename, vt=(x.vt_results if attribs[2] == "md5" else None))#, print('kid' if age < 18 else 'adult')
+                #else:
+                #    return render_template("hello2.html", x=rfile, all=all, all_op=all_op, filename=filename, vt=x.vt_results)  # , data=map(json.dumps, L))
             else:
                 return redirect(url_for("noyara"))
             # else:

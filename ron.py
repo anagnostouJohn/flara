@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import re
 import yara
@@ -9,7 +10,11 @@ import sys,math
 import pefile
 import zipfile
 from elftools.elf.elffile import ELFFile
+from pprint import pprint
+from virus_total_apis import PublicApi as VirusTotalPublicApi
 from capstone import *
+
+
 
 ipv4 = '(?:\d{1,3}\.)+(?:\d{1,3})'  # OK
 win_path = "[a-z][\:][\\|/][a-z]*[0-9]*[\\|/]*[a-z]*[0-9]*[\\|/]*[a-z]*[0-9]*"
@@ -25,14 +30,14 @@ pat_regkeys = "HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|CurrentVersion.Run|CurrentVe
 intresting_strs = "password|login|pwd|administrator|admin|root|smtp|pop|ftp|ssh|icq|backdoor|vmware"
 regexes = {"ipv4": ipv4,"win_path" : win_path,"site_path": site_path, "http_https":http_https,"base_64": base_64,"hex_blob":hex_blob,"email":email,"pat_win32":pat_win32,"pat_regkeys":pat_regkeys,"intresting_strs":intresting_strs}
 
-
+API_KEY = 'ddf8f1441192dca57af482e1c916421e974a955bff35fdcd4553ceed507fc453'
 def magic_bytes():
     with open("magic_bytes.json", "r") as file:
         x = json.load(file)
         return x
 
 class new_YARA():
-    def __init__(self,path,filesize,uint,size,size_op,many):
+    def __init__(self,path,filesize,uint,vt,size,size_op,many):
         self.path = path
         self.md5 = None
         self.sha256=None
@@ -41,11 +46,13 @@ class new_YARA():
         self.yara_name = None
         self.result = False
         self.filebytes = None
+        self.vt_results = None
         self.size = size
         self.size_op = size_op
         self.many = many
         self.filesize = filesize
         self.uint = uint
+        self.vt = vt
         self.printable_strings=list()
         self.opcodes = list()
         self.rules = list()
@@ -66,6 +73,21 @@ class new_YARA():
 
         self.md5 = hashlib.md5(open(self.path, 'rb').read()).hexdigest()
         self.sha256 = hashlib.sha256(open(self.path, 'rb').read()).hexdigest()
+        if self.vt == "md5":
+            vt = VirusTotalPublicApi(API_KEY)
+            #self.md5 = "4b26e810448141b3238895373c87f55a"
+            response = vt.get_file_report(self.md5)
+            x = json.dumps(response, sort_keys=False, indent=4)
+            self.vt_results = json.loads(x)
+            # if z["results"]["response_code"] == 1:
+            #     for i, j in z["results"]["scans"].items():
+            #
+            #         # print(i,"ffffff",j)
+            #         if j["detected"] == True:
+            #             print(i)
+            #             print(j["result"])
+            # elif z["results"]["response_code"] == 0:
+            #     pprint(z["results"]["verbose_msg"])
 
     def mb(self,mb):
         if len(mb) >= 8:
@@ -327,8 +349,8 @@ class new_YARA():
 
 
 
-def create_new_yara(path,filesize,uint,size,size_op,many):
-    ny = new_YARA(path,filesize,uint,size,size_op,many)
+def create_new_yara(path,filesize,uint,vt,size,size_op,many):
+    ny = new_YARA(path,filesize,uint,vt,size,size_op,many)
     return ny
 
 
