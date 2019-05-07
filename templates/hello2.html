@@ -22,6 +22,7 @@
   clear: both;
 }
 
+
     </style>
 
     <script>
@@ -38,32 +39,18 @@
 
 
 function myFunction() {
-
   var text = document.getElementById("textArea").value;
   var filename = document.getElementById("yn").value;
   if( filename ) {
   if (!filename.endsWith(".yara")){
   filename= filename+".yara";}
-
   download(filename, text);
 }
 else{
 alert("Provide Proper File Name");
-}
-
-}
+}}
 
 
-
-<!--// Start file download.-->
-<!--document.getElementById("dwn-btn").addEventListener("click", function(){-->
-    <!--// Generate download of hello.txt file with some content-->
-    <!--alert("hi");-->
-    <!--var text = document.getElementById("textArea").value;-->
-    <!--var filename = "hello.txt";-->
-
-    <!--download(filename, text);-->
-<!--}, false);-->
 
     </script>
 </head>
@@ -103,25 +90,52 @@ alert("Provide Proper File Name");
 </div>
 
 
-<!--&lt;!&ndash;<div style="width: 100px; float:left; height:100px; background:yellow; margin:10px">&ndash;&gt;-->
-<!--<div style="width:49%; float:left; display:inline-block;  margin: 0 auto; resize: both">-->
-<!--<h1>Working Yara Rule</h1>-->
-<!--<textarea rows="40" cols="75"  id="textArea" style="resize: none;">-->
-<!--{{x}}-->
-<!--</textarea>-->
-<!--Yara name: <input type="text" name="fname" id="yn"><br>-->
-<!--<input type="button" id="dwn-btn" onclick="myFunction()" value="Download YARA file"/>-->
-<!--</div>-->
+<div>
+    <div style="background-color:lightblue"><h3>Virus Total Results</h3></div>
 
-<!--&lt;!&ndash;<div style="width: 100px; float:left; height:100px; background:gray; margin:10px">&ndash;&gt;-->
-<!--<div style="width:49%; float:left; display:inline-block; margin: 0 auto; resize: both; ">-->
-<!--<h1>Printable strings</h1>-->
-<!--<ul id="navigation" style="width: 500px; height: 620px; margin: 0 auto; overflow: auto; ">-->
-<!--{% for item in all %}-->
-<!--<li>{{ item }}</li>-->
-<!--{% endfor %}-->
-<!--</ul>-->
-<!--</div>-->
+
+    {%if sel == "No" %}
+    <h4>No Virus Total Data</h4>
+    {% elif sel == "md5" %}
+    {% if vt["results"]["response_code"] ==0 %}
+    <h4>Virus Total response </h4>
+    <h5>{{vt["results"]["verbose_msg"]}}</h5>
+
+
+    {% elif vt["results"]["response_code"] ==1 %}
+    {% for key, value in vt["results"]["scans"].items() %}
+    {% set x = False %}
+    {% if value["detected"] == True %}
+    {% set x = True %}
+    <p><b>Anti Virus Platform :</b> {{key}}<br>
+        <b>Result :</b> {{value["result"]}}</p>
+    <hr>
+    {% endif %}
+    {% endfor %}
+    {% if x == False %}
+    <h4>No Malware</h4>
+    {% endif %}
+    {% endif %}
+    {% elif sel == "up" %}
+
+
+    {% for key, value in vt["results"]["scans"].items() %}
+    {% set x = False %}
+    {% if value["detected"] == True %}
+    {% set x = True %}
+    <p><b>Anti Virus Platform :</b> {{key}}<br>
+        <b>Result :</b> {{value["result"]}}</p>
+    <hr>
+    {% endif %}
+    {% endfor %}
+    {% if x == False %}
+    <h4>No Malware</h4>
+    {% endif %}
+
+    {% endif %}
+
+
+</div>
 
 
 </body>

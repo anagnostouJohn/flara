@@ -18,57 +18,86 @@
     }
         }
 
+
     </script>
 </head>
 <body>
 
-<div style="width: 60%; float: left;" >
-<h1> Upload a File to create Yara </h1>
-<form method=post enctype=multipart/form-data onsubmit ='showFileSize(event);'>
+<div style="width: 60%; float: left;">
+    <h1> Upload a File to create Yara </h1>
+    <form method=post enctype=multipart/form-data onsubmit='showFileSize(event);'>
 
 
-    <br>
-    <table>
-        <tr>
-            <td>File [20 Bytes Max size]</td>
-            <td><input type=file name=file id="fileinput"></td>
-        </tr>
-        <tr>
-            <td>include file size</td>
-            <td><input type="checkbox" name="atts" value="filesize"></td>
-        </tr>
-        <tr>
-            <td>include file uint</td>
-            <td><input type="checkbox" name="atts" value="uint"></td>
-        </tr>
-        <tr>
-            <td>Strings Included [15 default]:</td>
-            <td><input type="number" name="size" size="2" min="0" max="30"></td>
-        </tr>
-        <tr>
-            <td>Opcodes Included [0 default]:</td>
-            <td><input type="number" name="size_op" size="2" min="0" max="30"></td>
-        </tr>
-        <tr>
-            <td>How many of them [default "all"]:</td>
-            <td><input type="number" name="many" size="2" min="0" max="30"></td>
-        </tr>
+        <br>
+        <table>
+            <tr>
+                <td>File [20 MBytes Max size]</td>
+                <td><input type=file name=file></td>
+            </tr>
+            <tr>
+                <td>include file size</td>
+                <td><input type="checkbox" name="atts" value="filesize"></td>
+            </tr>
+            <tr>
+                <td>include file uint</td>
+                <td><input type="checkbox" name="atts" value="uint"></td>
+            </tr>
 
 
-        <tr>
-            <td><input type=submit value=Upload ></td>
-            <td>
-                <button type="reset" value="Reset">Reset</button>
-            </td>
-        </tr>
-    </table>
+            <tr>
+                <td> Use Virus Total</td>
+                <td>
+                    <select name="comp_select">
+                        <option value="No" selected>No Action</option>
+                        <option value="md5">Check for md5</option>
+                        <option value="up">Upload File</option>
 
 
-</form>
-    </div>
-<div style="width: 38%; float: left;" >
-<a href="{{url_for('yara_repository')}}">Yara Repository</a><br>
-<a href="{{url_for('badfiles')}}">Malware Repository</a>
+
+                    </select>
+
+                </td>
+
+            </tr>
+
+            <!--         <tr>-->
+            <!--            <td>check md5 on VirusTotal</td>-->
+            <!--            <td><input type="checkbox" name="atts" value="md5"></td>-->
+            <!--        </tr>-->
+
+            <!--                 <tr>-->
+            <!--            <td>Upload file to VirusTotal</td>-->
+            <!--            <td><input type="checkbox" name="atts" value="up"></td>-->
+            <!--        </tr>-->
+
+            <tr>
+                <td>Strings Included [15 default]:</td>
+                <td><input type="number" name="size" size="2" min="0" max="30"></td>
+            </tr>
+            <tr>
+                <td>Opcodes Included [0 default]:</td>
+                <td><input type="number" name="size_op" size="2" min="0" max="30"></td>
+            </tr>
+            <tr>
+                <td>How many of them [default "all"]:</td>
+                <td><input type="number" name="many" size="2" min="0" max="30"></td>
+            </tr>
+
+
+            <tr>
+                <td><input type=submit value=Upload></td>
+                <td>
+                    <button type="reset" value="Reset">Reset</button>
+                </td>
+            </tr>
+        </table>
+
+
+    </form>
+</div>
+<div style="width: 38%; float: left;">
+    <a href="{{url_for('yara_repository')}}">Yara Repository</a><br>
+    <a href="{{url_for('badfiles')}}">Malware Repository</a>
 
 
 </div>

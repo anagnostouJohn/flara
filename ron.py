@@ -37,7 +37,7 @@ def magic_bytes():
         return x
 
 class new_YARA():
-    def __init__(self,path,filesize,uint,vt,up_vt,size,size_op,many):
+    def __init__(self,path,filesize,uint,vt,size,size_op,many):
         self.path = path
         self.md5 = None
         self.sha256=None
@@ -53,43 +53,37 @@ class new_YARA():
         self.filesize = filesize
         self.uint = uint
         self.vt = vt
-        self.up_vt = up_vt
         self.printable_strings=list()
         self.opcodes = list()
         self.rules = list()
         counter =0
         while self.result == False and counter <3:
-
             self.create_yara()
             self.check_yara()
             counter+=1
             if self.result == True:
                 self.zipeverything()
 
-    # def extruct_url(self,chunk):
-    #     url = re.match(regex, chunk)
-    #     if url:
-    #         self.rules.append(url)
     def get_hashes(self):
         self.md5 = hashlib.md5(open(self.path, 'rb').read()).hexdigest()
         self.sha256 = hashlib.sha256(open(self.path, 'rb').read()).hexdigest()
-        if (self.vt == "md5" and self.up_vt == None) or (self.vt == "md5" and self.up_vt == "up"):
+        if self.vt == "md5":
             try:
                 vt = VirusTotalPublicApi(API_KEY)
-                #self.md5 = "4b26e810448141b3238895373c87f55a"
                 response = vt.get_file_report(self.md5)
                 x = json.dumps(response, sort_keys=False, indent=4)
                 self.vt_results = json.loads(x)
             except Exception as e:
                 self.vt_results = "error while attempting to connect to Virus Total Status ", e
-        if self.vt == None and self.up_vt == "up":
+        elif self.vt == "up":
             try:
                 vt = VirusTotalPublicApi(API_KEY)
-                response = vt.scan_file("app.exe")
-                report = vt.get_file_report(response["results"]["md5"])
-                print("Upload")
+                response = vt.scan_file(self.path)
+                self.vt_results = vt.get_file_report(response["results"]["md5"])
             except Exception as err:
                 print(err)
+        else:
+            self.vt_results = "No Results"
 
     def mb(self,mb):
         if len(mb) >= 8:
@@ -109,7 +103,6 @@ class new_YARA():
             res = ""
         return of, res
 
-
     def regex_returns(self, allstrings):
         from_regex = {}
         temp_list = []
@@ -127,8 +120,6 @@ class new_YARA():
         return from_regex
 
     def extract_opcodes(self,fileData):
-        # String list
-        # Read file data
         try:
             pe = pefile.PE(data=fileData)
             name = ""
@@ -150,7 +141,6 @@ class new_YARA():
                         if text_part == '' or len(text_part) < 8:
                             continue
                         self.opcodes.append(text_part[:16].hex())
-
         except Exception as e:
             print(e)
             pass
@@ -186,16 +176,16 @@ class new_YARA():
                         self.extract_opcodes(data)
                     elif data[1:4] == b"ELF":
                         self.extract_elf_opcodes(f)
+                    else:
+                        self.size_op=0
                 if len(allstrings) > 0:
                     self.printable_strings = list(set(allstrings))
                     return list(set(allstrings)), from_regex, list(set(self.opcodes))
                 else:
-                    # print ('[!] No Extractable Attributes Present in Hash: '+str(.md5sum(filename)) + ' Please Remove it from the Sample Set and Try Again!')
                     print("EXCEPTION1")
                     sys.exit(1)
         except Exception as w:
             print("EXCEPTION2", w)
-            # print ('[!] No Extractable Attributes Present in Hash: '+str(md5sum(filename)) + ' Please Remove it from the Sample Set and Try Again!')
             sys.exit(1)
 
     def check_yara(self):
@@ -233,10 +223,10 @@ class new_YARA():
         if self.size == 0 and self.size_op == 0:
             self.size = 15
         elif self.size == 0 and self.size_op > 0:
-            self.size = 0
-
+            self.size = 15
         if len(self.printable_strings)<self.size:
             self.size = len(self.printable_strings)
+
     def calc_many(self):
         if self.size+self.size_op<self.many:
             hm = "all"
@@ -245,7 +235,6 @@ class new_YARA():
         if self.many == 0 or self.many == "":
             hm = "all"
         return hm
-
 
     def calc_filesize(self):
         self.filebytes = math.floor(int(os.path.getsize(self.path)))
@@ -259,12 +248,10 @@ class new_YARA():
     def create_yara(self):
         self.get_hashes()
         self.getStrings()
-
         self.calc_size()
         randOpcodes=""
         hmany = self.calc_many()
         randStrings = random.sample(self.printable_strings,self.size)
-
         if len(self.opcodes)>0:
             randOpcodes=random.sample(self.opcodes,self.size_op)
         self.yara_name = os.path.basename(self.path).split(".")[0]
@@ -320,26 +307,24 @@ class new_YARA():
         ruleOutFile.close()
         return
 
-
     def zipeverything(self):
-        zip = os.getcwd()+f"\\uploaded\\{self.yara_name}.zip"
+        zip = os.getcwd()+f"/uploaded/{self.yara_name}.zip"
+        zip.replace("\\","/")
         basen = os.path.basename(self.path)
         my_zip = zipfile.ZipFile(zip, "w", zipfile.ZIP_DEFLATED)
         my_zip.write(self.path, basen)
-        #file = os.getcwd()+f"\\yara_repository\\{self.yara_path}"
         basen = os.path.basename(self.yara_path)
-        #print(self.yara_path, basen)
         my_zip.write(self.yara_path, basen)
         my_zip.close()
         os.remove(self.path)
         del zip,basen,my_zip
-
 
     def ret_all_str(self):
         strings_from_bytes = list()
         for i in self.printable_strings:
             strings_from_bytes.append(i.decode("utf-8"))
         return strings_from_bytes
+
     def ret_all_op(self):
         if len(self.opcodes)>0:
             return set(self.opcodes)
@@ -347,11 +332,8 @@ class new_YARA():
             return "No Opcodes"
 
 
-
-
-
-def create_new_yara(path,filesize,uint,vt,up_vt,size,size_op,many):
-    ny = new_YARA(path,filesize,uint,vt,up_vt,size,size_op,many)
+def create_new_yara(path,filesize,uint,vt,size,size_op,many):
+    ny = new_YARA(path,filesize,uint,vt,size,size_op,many)
     return ny
 
 

@@ -18,15 +18,11 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def checkboxes(att):
-    checkb= [None,None,None,None]
+    checkb= [None,None]
     if "filesize" in att:
         checkb[0]="filesize"
     if "uint" in att:
         checkb[1]="uint"
-    if "md5" in att:
-        checkb[2]="md5"
-    if "up" in att:
-        checkb[3]="up"
     return checkb
 
 def sizes(size):
@@ -46,27 +42,24 @@ def upload_file():
         else:
             file = request.files['file']
             attribs = checkboxes(request.form.getlist('atts'))
+            vt_select = request.form.get("comp_select")
+
             size = sizes(request.form["size"])
             size_op = sizes(request.form["size_op"])
             many = sizes(request.form["many"])
             # if file and (allowed_file(file.filename) or "ELF" in z) :# <<<<<<<<<<<< TODO SE PERIPTOSH POU THELO NA PERIORISO TOYS TYPOYS ARXEION POU THA ANEVAZO
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],attribs[2],attribs[3],size,size_op,many)
+            x = ron.create_new_yara(os.path.join(app.config['UPLOAD_FOLDER'], filename),attribs[0],attribs[1],vt_select,size,size_op,many)
             if x.result != False:
                 file = open(x.yara_path,"r")
                 rfile = file.read()
                 file.close()
                 all = x.ret_all_str()
                 all_op = x.ret_all_op()
-                #if attribs[2] == "md5":
-                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename, vt=(x.vt_results if attribs[2] == "md5" else None))#, print('kid' if age < 18 else 'adult')
-                #else:
-                #    return render_template("hello2.html", x=rfile, all=all, all_op=all_op, filename=filename, vt=x.vt_results)  # , data=map(json.dumps, L))
+                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename, vt=x.vt_results, sel=vt_select) #, print('kid' if age < 18 else 'adult')
             else:
                 return redirect(url_for("noyara"))
-            # else:
-            #     return redirect(url_for("no proper file"))
     return render_template("hello.html")
 
 
@@ -78,6 +71,7 @@ def uploaded_file(filename,x):
 @app.route('/nofile/')
 def nofile():
     return "No File Selected"
+
 
 @app.route('/noyara/')
 def noyara():
@@ -104,7 +98,6 @@ def badfiles():
     return render_template("badfilesrepo.html", all=files)
 
 
-# @app.route('/download/<path:filename>', methods=['GET', 'POST'])
 @app.route('/download/', methods=['GET', 'POST'])
 #def download(filename):
 def download():
@@ -117,10 +110,6 @@ def download():
     return send_from_directory(directory=uploads, filename=filename)
 
 
-
-
-
-
 if __name__ == "__main__":
     yara_f_path = os.getcwd()+"/yara_repository"
     upload_f_path = os.getcwd() + "/uploaded"
@@ -131,73 +120,4 @@ if __name__ == "__main__":
     del yara_f_path,upload_f_path
     app.run(host='0.0.0.0',debug=True)
     #app.run(debug=True)
-
-#
-#
-#
-#
-# import os
-# from flask import Flask, flash, request, redirect, url_for
-# from werkzeug.utils import secure_filename
-#
-
-
-
-
-#
-#     return '''
-#     <!doctype html>
-#     <title>Upload new Filebiloguouhio</title>
-#     <h1>Upload new File</h1>
-#     <form method=post enctype=multipart/form-data>
-#       <input type=file name=file>
-#       <input type=submit value=Upload>
-#     </form>
-#     '''
-# @app.route('/uploaded_file/<filename>/<x>')
-# def uploaded_file(filename,x):
-#     return "heloo"+ filename+ "_____",x
-
-
-# # @app.route('/hello/')
-# @app.route('/hello/<names>')
-# def projects(names=None):
-#     return render_template('hello.html', name=names)
-#     #return redirect("http://www.google.com", code=302)
-#     #return 'The project page'
-#
-# @app.route('/about')
-# def about():
-#     return 'The about page'
-
-
-#
-# @app.route('/user/<username>')
-# def show_user_profile(username):
-#     # show the user profile for that user
-#     x = hello(username)
-#     return f'User {x.printme()}'
-#     #x = hello(username)
-#     #return x
-#
-#
-# @app.route('/post/<int:post_id>')
-# def show_post(post_id):
-#     # show the post with the given id, the id is an integer
-#     return 'Post %d' % post_id
-#
-# @app.route('/path/<path:subpath>')
-# def show_subpath(subpath):
-#     # show the subpath after /path/
-#     return 'Subpath %s' % subpath
-#
-#
-#
-# class hello():
-#     def __init__(self, name):
-#         self.name=name
-#     def printme(self):
-#         self.name = self.name + "12345"
-#         return self.name
-
 
