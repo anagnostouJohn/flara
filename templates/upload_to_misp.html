@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+    <title>Yara Creator</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!--    <script>-->
+    <!--    function showFileSize(event) {-->
+    <!--    var input, file;-->
+    <!--        if (!window.FileReader) {-->
+    <!--        alert("The file API isn't supported on this browser yet.");-->
+    <!--        return;-->
+    <!--    }-->
+    <!--    input = document.getElementById('fileinput');-->
+    <!--    file = input.files[0];-->
+    <!--    if (file.size>20000000)-->
+    <!--    {-->
+    <!--        alert("Size must be 20MB max");-->
+    <!--        event.preventDefault();-->
+    <!--    }-->
+    <!--        }-->
+
+
+    <!--    </script>-->
+</head>
+<body>
+<h1>Additional Informations foe MISP EVENT</h1>
+<form method=post enctype=multipart/form-data action="{{ url_for('handle_data') }}">
+    <table>
+        <tr>
+            <td>
+                <p>Event Informations</p>
+            </td>
+            <td><input type="text" name="misp_event" size="50"></td>
+        </tr>
+
+        <tr>
+            <td>
+                <p>Threat Level</p>
+            </td>
+            <td><select name="threat_select">
+                <option value=0 selected>Undefined</option>
+                <option value=1>Low</option>
+                <option value=2>Medium</option>
+                <option value=3>High</option>
+            </select></td>
+        </tr>
+
+        <tr>
+            <td>
+                <p>Analysis</p>
+            </td>
+            <td><select name="anal_select">
+                <option value=0 selected>Initial</option>
+                <option value=1>Ongoing</option>
+                <option value=2>Completed</option>
+            </select></td>
+        </tr>
+
+                <tr>
+            <td>
+                <p>Publish Event</p>
+            </td>
+            <td><input type="checkbox" name="pub" value=True></td>
+
+        </tr>
+
+        <tr>
+            <td>
+                <p>Upload Malware (zip Format)</p>
+            </td>
+            <td><input type="checkbox" name="upl" value=True></td>
+
+        </tr>
+        <tr>
+            <td>
+                <p>Attatchment Comments</p>
+            </td>
+            <td><input type="text" name="att_com" size="100"></td>
+        </tr>
+
+        <tr>
+            <td>
+                <input type=submit value=Upload>
+            </td>
+            <td> <button type="reset" value="Reset">Reset</button> </td>
+            <td> <button type="button" onclick="window.location.href='{{ url_for('upload_file') }}'">Home Page</button></td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>
+
+
+
+
+
+
+<!--<div style="width: 60%; float: left;">-->
+<!--    <h1> Upload a File to create Yara </h1>-->
+<!--    <form method=post enctype=multipart/form-data onsubmit='showFileSize(event);'>-->
+
+
+<!--        <br>-->
+<!--        <table>-->
+<!--            <tr>-->
+<!--                <td>File [20 MBytes Max size]</td>-->
+<!--                <td><input type=file name=file></td>-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                <td>include file size</td>-->
+<!--                <td><input type="checkbox" name="atts" value="filesize"></td>-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                <td>include file uint</td>-->
+<!--                <td><input type="checkbox" name="atts" value="uint"></td>-->
+<!--            </tr>-->
+
+
+<!--            <tr>-->
+<!--                <td> Use Virus Total</td>-->
+<!--                <td>-->
+<!--                    <select name="comp_select">-->
+<!--                        <option value="No" selected>No Action</option>-->
+<!--                        <option value="md5">Check for md5</option>-->
+<!--                        <option value="up">Upload File</option>-->
+
+
+<!--                    </select>-->
+
+<!--                </td>-->
+
+<!--            </tr>-->
+
+<!--            &lt;!&ndash;         <tr>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <td>check md5 on VirusTotal</td>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <td><input type="checkbox" name="atts" value="md5"></td>&ndash;&gt;-->
+<!--            &lt;!&ndash;        </tr>&ndash;&gt;-->
+
+<!--            &lt;!&ndash;                 <tr>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <td>Upload file to VirusTotal</td>&ndash;&gt;-->
+<!--            &lt;!&ndash;            <td><input type="checkbox" name="atts" value="up"></td>&ndash;&gt;-->
+<!--            &lt;!&ndash;        </tr>&ndash;&gt;-->
+
+<!--            <tr>-->
+<!--                <td>Strings Included [15 default]:</td>-->
+<!--                <td><input type="number" name="size" size="2" min="0" max="30"></td>-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                <td>Opcodes Included [0 default]:</td>-->
+<!--                <td><input type="number" name="size_op" size="2" min="0" max="30"></td>-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                <td>How many of them [default "all"]:</td>-->
+<!--                <td><input type="number" name="many" size="2" min="0" max="30"></td>-->
+<!--            </tr>-->
+
+
+<!--            <tr>-->
+<!--                <td><input type=submit value=Upload></td>-->
+<!--                <td>-->
+<!--                    <button type="reset" value="Reset">Reset</button>-->
+<!--                </td>-->
+<!--            </tr>-->
+<!--        </table>-->
+
+
+<!--    </form>-->
+<!--</div>-->
+<!--<div style="width: 38%; float: left;">-->
+<!--    <a href="{{url_for('yara_repository')}}">Yara Repository</a><br>-->
+<!--    <a href="{{url_for('badfiles')}}">Malware Repository</a>-->
+
+
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
+<!--&lt;!&ndash;{% if name %}&ndash;&gt;-->
+<!--&lt;!&ndash;<h1>Hello {{ name }}!</h1>&ndash;&gt;-->
+
+<!--&lt;!&ndash;{% else %}&ndash;&gt;-->
+<!--&lt;!&ndash;<h1>Hello, World!</h1>&ndash;&gt;-->
+
+<!--&lt;!&ndash;{% endif %}&ndash;&gt;-->

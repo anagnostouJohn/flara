@@ -1,7 +1,8 @@
 <!doctype html>
 <html>
 <head>
-    <title>Results</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Yara Creator</title>
     <style>
 * {
   box-sizing: border-box;
@@ -66,6 +67,7 @@ alert("Provide Proper File Name");
     </textarea>
         Yara name: <input type="text" name="fname" id="yn">.yara<br>
         <input type="button" id="dwn-btn" onclick="myFunction()" value="Download YARA file"/>
+        <button type="button" onclick="window.location.href='{{ url_for('upload_to_MISP') }}';">Upload to MISP</button>
     </div>
     <div class="column">
         <h2>Printable strings</h2>

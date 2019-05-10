@@ -1,7 +1,11 @@
 <!doctype html>
 <html>
 <head>
+<!--    <link rel="shortcut icon" href="1.ico" type="image/x-icon" />-->
+
     <title>Yara Creator</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
     <script>
     function showFileSize(event) {
     var input, file;
@@ -51,9 +55,6 @@
                         <option value="No" selected>No Action</option>
                         <option value="md5">Check for md5</option>
                         <option value="up">Upload File</option>
-
-
-
                     </select>
 
                 </td>
@@ -89,6 +90,7 @@
                 <td>
                     <button type="reset" value="Reset">Reset</button>
                 </td>
+
             </tr>
         </table>
 

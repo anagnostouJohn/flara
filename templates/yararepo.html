@@ -1,17 +1,18 @@
 <!doctype html>
 <html>
 <head>
-<title>Yara Creator</title>
-    </head>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Yara Creator</title>
+</head>
 <body>
 
 <h1> Yara Repository </h1>
- <!--<ul id="repository" style=" width: 100%; height: 620px; margin: 0 auto; overflow: auto; float:right">-->
- <ul id="repository">
-            {% for item in all %}
+<!--<ul id="repository" style=" width: 100%; height: 620px; margin: 0 auto; overflow: auto; float:right">-->
+<ul id="repository">
+    {% for item in all %}
 
-            <li><a href="{{url_for('download',filename = item, typeof='yara')}}" >{{ item }}</a></li>
-            {% endfor %}
-        </ul>
+    <li><a href="{{url_for('download',filename = item, typeof='yara')}}">{{ item }}</a></li>
+    {% endfor %}
+</ul>
 </body>
 </html>
