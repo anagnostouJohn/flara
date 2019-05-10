@@ -121,7 +121,7 @@ def handle_data():
     #print(filename,typeof,analysis,upl,att_comm)
 
 
-    misp = pm("https://misp.mcirc.hndgs.mil", "NsobbEkrcAqwYnY4dXDjXtgYlwoE91Syx0bzqUXA", False)
+    misp = pm("URL", "KEY", False)
 
 
     event = me()
