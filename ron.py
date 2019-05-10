@@ -171,18 +171,19 @@ class new_YARA():
                 allstrings = unicodelist + strlist
                 # Extract Strings of Interest
                 from_regex = self.regex_returns(allstrings)
-                if self.size_op > 0:
-                    if data[0:2] == b"MZ":
-                        self.extract_opcodes(data)
-                    elif data[1:4] == b"ELF":
-                        self.extract_elf_opcodes(f)
-                    else:
-                        self.size_op=0
-                if len(allstrings) > 0:
-                    self.printable_strings = list(set(allstrings))
-                    return list(set(allstrings)), from_regex, list(set(self.opcodes))
-                else:
-                    print("EXCEPTION1")
+                try:
+                    if self.size_op > 0:
+                        if data[0:2] == b"MZ":
+                            self.extract_opcodes(data)
+                        elif data[1:4] == b"ELF":
+                            self.extract_elf_opcodes(f)
+                        else:
+                            self.size_op=0
+                    if len(allstrings) > 0:
+                        self.printable_strings = list(set(allstrings))
+                        return list(set(allstrings)), from_regex, list(set(self.opcodes))
+                except Exception as e:
+                    print("EXCEPTION1",e)
                     sys.exit(1)
         except Exception as w:
             print("EXCEPTION2", w)

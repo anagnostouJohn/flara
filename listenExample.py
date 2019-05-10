@@ -3,15 +3,22 @@ from flask import Flask, url_for, redirect, request, send_from_directory
 from werkzeug.utils import secure_filename
 import os,json
 import ron
+from pymisp import PyMISP as pm
+from pymisp import MISPEvent as me
+from pymisp import ExpandedPyMISP, MISPEvent, MISPOrganisation, MISPUser, Distribution, ThreatLevel, Analysis, MISPObject, MISPAttribute
+from uuid import uuid4
+from datetime import datetime
+
 
 
 
 UPLOAD_FOLDER = os.getcwd()+'/uploaded'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif','exe'])
 
-app = Flask(__name__,static_folder='yara_repository')
+app = Flask(__name__,static_folder='static')
 app.config['MAX_CONTENT_LENGTH'] = 21 * 1024 * 1024 #16 MB max file size
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -78,6 +85,11 @@ def noyara():
     return "Could not manage to generate YARA file"
 
 
+@app.route('/upload_to_MISP/')
+def upload_to_MISP():
+    return render_template("upload_to_misp.html")
+
+
 @app.route('/yara_repository/')
 def yara_repository():
     files = list()
@@ -87,6 +99,62 @@ def yara_repository():
             files.append(file)
     return render_template("yararepo.html", all=files)
 
+
+@app.route('/handle_data/', methods=['POST'])
+def handle_data():
+    print("OK")
+
+    # filename = request.args.get('misp_event', type=str) #get(key, default=None, type=None)
+    # typeof = request.args.get('threat_select', type=str)
+    # analysis = request.args.get('anal_select', type=str)
+    # upl = request.args.get('upl', 1, type=bool)
+    # att_comm = request.args.get('att_com', type=str)
+    threat=[ThreatLevel.undefined,ThreatLevel.low,ThreatLevel.medium,ThreatLevel.high]
+    analysis=[Analysis.initial,Analysis.ongoing,Analysis.completed]
+    txt_event = request.form.get('misp_event')
+    threat_sel = request.form.get('threat_select')
+    analysis_html = request.form.get('anal_select')
+    upl = request.form.get('upl')
+    pub = request.form.get('pub')
+    att_comm = request.form.get('att_com')
+
+    #print(filename,typeof,analysis,upl,att_comm)
+
+
+    misp = pm("https://misp.mcirc.hndgs.mil", "NsobbEkrcAqwYnY4dXDjXtgYlwoE91Syx0bzqUXA", False)
+
+
+    event = me()
+
+    event.info = txt_event
+    # second_event.distribution = "distribution org"
+    #print(dir(second_event))
+    if int(threat_sel) <0 or int(threat_sel)>3  or (isinstance(threat_sel, int) == False):
+        threat_sel =0
+    else:
+        threat_sel = int(threat_sel)
+        event.threat_level_id = threat[threat_sel]
+    if int(analysis_html)<0 or int(analysis_html)>2 or (isinstance(threat_sel, int) == False):
+        analysis_html = 0
+    else:
+        analysis_html =int(analysis_html)
+        event.analysis = analysis[analysis_html]
+    # second_event.set_date("Aug 18 2018")
+    event.set_date(f"{datetime.today().month} {datetime.today().day} {datetime.today().year}")
+    #event.add_attribute('text', str(uuid4()))
+    # second_event.attributes[0].add_tag('tlp:white___test')
+    #event.add_attribute('ip-dst', '1.1.1.1')
+    #event.add_attribute('yara', '1.1.1.1')
+    event.add_attribute('yara', 'zzzzz')
+    event.attributes[0].comment = att_comm
+    # second_event.attributes[1].add_tag('tlp:amber___test')
+    # Same value as in first event.
+    # second_event.add_attribute('text', "hello")
+    if pub == True:
+        event.publish()
+
+    misp.add_event(event)
+    return redirect(url_for("upload_file"))
 
 @app.route('/badfiles/')
 def badfiles():
@@ -99,7 +167,6 @@ def badfiles():
 
 
 @app.route('/download/', methods=['GET', 'POST'])
-#def download(filename):
 def download():
     filename = request.args.get('filename', 1, type=str)
     typeof = request.args.get('typeof', 1, type=str)
