@@ -8,7 +8,8 @@ from pymisp import MISPEvent as me
 from pymisp import ExpandedPyMISP, MISPEvent, MISPOrganisation, MISPUser, Distribution, ThreatLevel, Analysis, MISPObject, MISPAttribute
 from uuid import uuid4
 from datetime import datetime
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 
@@ -63,8 +64,9 @@ def upload_file():
                 rfile = file.read()
                 file.close()
                 all = x.ret_all_str()
+                yara_name = x.yara_name
                 all_op = x.ret_all_op()
-                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename, vt=x.vt_results, sel=vt_select) #, print('kid' if age < 18 else 'adult')
+                return render_template("hello2.html", x =rfile, all= all, all_op=all_op, filename = filename, vt=x.vt_results, sel=vt_select, yn=yara_name) #, print('kid' if age < 18 else 'adult')
             else:
                 return redirect(url_for("noyara"))
     return render_template("hello.html")
@@ -77,17 +79,28 @@ def uploaded_file(filename,x):
 
 @app.route('/nofile/')
 def nofile():
-    return "No File Selected"
+    return render_template("no_file.html")
+
+
+
+
+#
+# @app.route('/noyara/')
+# def noyara():
+#     return "Could not manage to generate YARA file"
 
 
 @app.route('/noyara/')
 def noyara():
-    return "Could not manage to generate YARA file"
+    return render_template("no_yara.html")
 
+@app.route('/misp/')
+def misp():
+    return "Unable to establish connection with MISP"
 
 @app.route('/upload_to_MISP/')
 def upload_to_MISP():
-    return render_template("upload_to_misp.html")
+    return render_template("upload_to_misp.html", file=request.args.get('file', 1, type=str), yara=request.args.get('yara', 1, type=str))
 
 
 @app.route('/yara_repository/')
@@ -102,30 +115,26 @@ def yara_repository():
 
 @app.route('/handle_data/', methods=['POST'])
 def handle_data():
-    print("OK")
+    yara = request.args.get('yaraa', 1, type=str)
+    zip_file = request.args.get('filee', 1, type=str)#get(key, default=None, type=None)
 
-    # filename = request.args.get('misp_event', type=str) #get(key, default=None, type=None)
-    # typeof = request.args.get('threat_select', type=str)
-    # analysis = request.args.get('anal_select', type=str)
-    # upl = request.args.get('upl', 1, type=bool)
-    # att_comm = request.args.get('att_com', type=str)
     threat=[ThreatLevel.undefined,ThreatLevel.low,ThreatLevel.medium,ThreatLevel.high]
     analysis=[Analysis.initial,Analysis.ongoing,Analysis.completed]
     txt_event = request.form.get('misp_event')
     threat_sel = request.form.get('threat_select')
     analysis_html = request.form.get('anal_select')
-    upl = request.form.get('upl')
-    pub = request.form.get('pub')
+    upl = bool(request.form.get('upl'))
+    pub = bool(request.form.get('pub'))
     att_comm = request.form.get('att_com')
 
     #print(filename,typeof,analysis,upl,att_comm)
 
+    try:
 
-    misp = pm("URL", "KEY", False)
-
-
+        misp = pm("https://192.168.1.10", "gQkJ6nqwWDZEakD9U5pUqZZDhuKpsz6X7kmB4e9b", False)
+    except:
+        return redirect(url_for("misp"))
     event = me()
-
     event.info = txt_event
     # second_event.distribution = "distribution org"
     #print(dir(second_event))
@@ -145,16 +154,23 @@ def handle_data():
     # second_event.attributes[0].add_tag('tlp:white___test')
     #event.add_attribute('ip-dst', '1.1.1.1')
     #event.add_attribute('yara', '1.1.1.1')
-    event.add_attribute('yara', 'zzzzz')
+    event.add_attribute('yara', yara)
     event.attributes[0].comment = att_comm
     # second_event.attributes[1].add_tag('tlp:amber___test')
     # Same value as in first event.
     # second_event.add_attribute('text', "hello")
     if pub == True:
         event.publish()
-
-    misp.add_event(event)
-    return redirect(url_for("upload_file"))
+    try:
+        x = misp.add_event(event)
+        print("xxxx", x, dir(x))
+        if upl == True:
+            for root, dirs, files in os.walk(os.getcwd() + "/uploaded", topdown=False):
+                if zip_file + ".zip" in files:
+                    misp.add_attachment(x["Event"]["id"], os.getcwd()+"/uploaded/"+zip_file + ".zip")
+        return redirect(url_for("upload_file"))
+    except Exception as e:
+        print(e)
 
 @app.route('/badfiles/')
 def badfiles():
@@ -185,6 +201,6 @@ if __name__ == "__main__":
     if not os.path.exists(upload_f_path):
         os.makedirs(upload_f_path)
     del yara_f_path,upload_f_path
-    app.run(host='0.0.0.0',debug=True)
-    #app.run(debug=True)
+    #app.run(host='0.0.0.0',debug=True)
+    app.run(debug=True)
 
