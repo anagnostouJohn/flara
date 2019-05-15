@@ -67,7 +67,7 @@ alert("Provide Proper File Name");
     </textarea>
         Yara name: <input type="text" name="fname" id="yn">.yara<br>
         <input type="button" id="dwn-btn" onclick="myFunction()" value="Download YARA file"/>
-        <button type="button" onclick="window.location.href='{{ url_for('upload_to_MISP') }}';">Upload to MISP</button>
+        <button type="button" onclick="window.location.href='{{ url_for('upload_to_MISP', yara=x, file=yn) }}';">Upload to MISP</button>
     </div>
     <div class="column">
         <h2>Printable strings</h2>
